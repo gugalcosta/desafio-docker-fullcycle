@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:8.3.0
+    container_name: mysql
+    restart: always
+    tty: true
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+        interval: 5s
+        timeout: 10s
+        retries: 3
+    networks:
+      - node-network
+  
+  node-app:
+    build: 
+      context: node
+    image: gustavolcosta/node
+    container_name: node-app
+    tty: true
+    networks:
+      - node-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+  
+  nginx:
+    build: 
+      context: nginx
+    image: gustavolcosta/nginx 
+    container_name: nginx
+    ports:
+      - 8080:80
+    tty: true
+    networks:
+      - node-network
+    depends_on:
+      - node-app
+
+networks:
+  node-network:
+    driver: bridge
