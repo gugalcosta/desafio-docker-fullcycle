@@ -24,6 +24,9 @@ services:
       context: node
     image: gustavolcosta/node
     container_name: node-app
+    volumes:
+      - ./node:/usr/src/app
+      - /usr/src/app/node_modules
     tty: true
     networks:
       - node-network
